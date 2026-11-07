@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apoio ao Estudante</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="login-mode">
+    <section class="login-screen" id="loginScreen">
+      <div class="login-panel">
+        <div class="login-copy">
+          <div class="brand login-brand">
+            <div class="brand-mark">AE</div>
+            <div>
+              <strong>Apoio ao Estudante</strong>
+              <span>Planejamento inclusivo</span>
+            </div>
+          </div>
+          <p class="eyebrow">Acesso ao sistema</p>
+          <h1>Entre para gerar atividades adaptadas com segurança.</h1>
+          <p>Cada profissional tem login individual e permissões próprias: professoras veem apenas dados pedagógicos, a coordenação administra turmas, professoras, alunos e dados pessoais.</p>
+        </div>
+
+        <form class="login-card" id="loginForm">
+          <div>
+            <p class="eyebrow">Login</p>
+            <h2>Entrar</h2>
+          </div>
+
+          <label>
+            E-mail
+            <input id="loginEmail" type="email" autocomplete="username" required placeholder="seuemail@escola.com" />
+          </label>
+
+          <label>
+            Senha
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="••••••••" />
+          </label>
+
+          <p class="login-error" id="loginError" role="alert"></p>
+          <button class="primary-action" type="submit" id="loginSubmit">Entrar no sistema</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="app-shell" id="appShell" hidden>
+      <button class="mobile-nav-toggle" type="button" id="mobileNavToggle" aria-label="Abrir menu">☰ Menu</button>
+
+      <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+        <div class="brand">
+          <div class="brand-mark">AE</div>
+          <div>
+            <strong>Apoio ao Estudante</strong>
+            <span>Planejamento inclusivo</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="quick">Atendimento rápido</button>
+          <button class="nav-item" data-view="students">Alunos</button>
+          <button class="nav-item" data-view="needs">Base de deficiências</button>
+          <button class="nav-item" data-view="teacher">Perfil da professora</button>
+          <button class="nav-item" data-view="admin" id="adminNavItem" hidden>Coordenação</button>
+        </nav>
+
+        <div class="privacy-note">
+          <strong>Dados protegidos</strong>
+          <p>A professora trabalha com perfil pedagógico. A coordenação mantém os dados pessoais e administrativos — a separação é aplicada pelo servidor, não apenas pela tela.</p>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Apoio ao planejamento</p>
+            <h1>Atividades inclusivas para a rotina da escola</h1>
+          </div>
+          <div class="session-card">
+            <span id="currentUserRole">Professora</span>
+            <strong id="currentUserName">—</strong>
+            <button class="secondary-action small-action" type="button" id="logoutButton">Sair</button>
+          </div>
+        </header>
+
+        <div id="toast" class="toast" hidden></div>
+
+        <section id="quick" class="view active">
+          <section class="overview-strip" id="introStrip" aria-label="Resumo do sistema">
+            <button class="intro-dismiss" type="button" id="introDismiss" aria-label="Ocultar estas dicas">×</button>
+            <article>
+              <span>01</span>
+              <strong>Informe o contexto</strong>
+              <p>Turma, aluno e tema do dia.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>Receba 3 caminhos</strong>
+              <p>Atividades diferentes, alinhadas à BNCC.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>Selecione e registre</strong>
+              <p>Escolha uma, aplique, e diga como foi.</p>
+            </article>
+          </section>
+          <button class="intro-restore secondary-action small-action" type="button" id="introRestore" hidden>Mostrar dicas</button>
+
+          <div class="work-grid">
+            <section class="panel planner-panel">
+              <div class="panel-title">
+                <div>
+                  <p class="eyebrow">Atendimento rápido</p>
+                  <h2>Selecione turma, aluno e tema</h2>
+                </div>
+                <span class="badge">Sempre 3 atividades</span>
+              </div>
+
+              <form id="plannerForm" class="planner-form">
+                <label>
+                  Turma
+                  <select id="classSelect"></select>
+                </label>
+
+                <label>
+                  Aluno
+                  <select id="studentSelect"></select>
+                </label>
+
+                <label>
+                  Tema do dia
+                  <input id="themeInput" type="text" value="Folclore" placeholder="Ex: Folclore, animais, higiene" />
+                </label>
+
+                <label class="bncc-field">
+                  Objetivo BNCC relacionado
+                  <select id="bnccSelect"></select>
+                </label>
+                <p class="bncc-description" id="bnccDescription"></p>
+
+                <button class="primary-action" type="submit" id="generateActivitiesButton">Gerar 3 atividades</button>
+              </form>
+            </section>
+
+            <section class="panel student-summary" aria-live="polite">
+              <p class="eyebrow">Perfil pedagógico</p>
+              <div id="studentSummary"></div>
+              <p class="empty-hint" id="studentSummaryEmpty">Selecione uma turma e um aluno para ver o perfil pedagógico aqui.</p>
+            </section>
+          </div>
+
+          <section class="suggestions-section">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Matriz de atividades</p>
+                <h2 id="suggestionsTitle">Atividades adaptadas</h2>
+              </div>
+              <p id="suggestionsSubtitle">As opções variam entre expressão, investigação, movimento, linguagem, construção e recursos digitais.</p>
+            </div>
+            <p class="shared-objective" id="sharedObjective" hidden></p>
+            <p class="ai-status-line" id="activitiesSourceLine" hidden></p>
+            <div id="activitiesGrid" class="activities-grid"></div>
+            <p class="empty-hint" id="activitiesEmpty">Gere atividades para um aluno para ver as sugestões aqui.</p>
+
+            <article class="assignment-panel" id="assignmentPanel" hidden>
+              <div class="assignment-head">
+                <span class="activity-type" id="assignmentType"></span>
+                <span class="badge">Em andamento</span>
+              </div>
+              <h3 id="assignmentTitle"></h3>
+              <div class="resource-box" id="assignmentResource"></div>
+              <p><strong>Como aplicar:</strong> <span id="assignmentMethod"></span></p>
+              <p><strong>Adaptação:</strong> <span id="assignmentAdaptation"></span></p>
+              <label class="assignment-notes-label">
+                Observações do retorno (opcional)
+                <textarea id="assignmentNotes" rows="3" placeholder="Ex: participou com apoio visual, evitou som alto, precisou de pausa..."></textarea>
+              </label>
+              <div class="dialog-actions assignment-actions">
+                <button class="secondary-action" type="button" data-resolve="Não funcionou">Não funcionou</button>
+                <button class="secondary-action" type="button" data-resolve="Funcionou parcialmente">Funcionou parcialmente</button>
+                <button class="primary-action" type="button" data-resolve="Funcionou bem">Funcionou bem</button>
+              </div>
+              <button class="text-action" type="button" id="cancelAssignment">Cancelar seleção sem registrar resultado</button>
+            </article>
+          </section>
+        </section>
+
+        <section id="students" class="view">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Memória pedagógica</p>
+              <h2>Alunos disponíveis</h2>
+            </div>
+            <p>Professores visualizam apenas dados pedagógicos essenciais.</p>
+          </div>
+          <div class="list-controls">
+            <input type="search" id="studentsSearch" placeholder="Buscar aluno pelo nome..." />
+            <select id="studentsClassFilter"><option value="">Todas as turmas</option></select>
+          </div>
+          <div id="studentsGrid" class="grouped-list"></div>
+        </section>
+
+        <section id="needs" class="view">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Base pedagógica</p>
+              <h2>Deficiências e necessidades educacionais</h2>
+            </div>
+            <div class="heading-actions">
+              <p>Conteúdo inicial alimentado por IA, com espaço para percepções da equipe.</p>
+              <button class="primary-action" type="button" id="addNeedButton">Adicionar deficiência</button>
+            </div>
+          </div>
+          <p class="ai-status-line" id="aiStatusLine"></p>
+          <div id="needsGrid" class="needs-grid"></div>
+        </section>
+
+        <section id="teacher" class="view">
+          <div class="panel">
+            <p class="eyebrow">Perfil da professora</p>
+            <h2 id="teacherName">Professora</h2>
+            <div id="teacherStats" class="teacher-stats"></div>
+            <div class="teacher-layout">
+              <div>
+                <h3>Permissões</h3>
+                <ul class="check-list">
+                  <li>Visualizar alunos, turma, idade e tipo de deficiência.</li>
+                  <li>Gerar atividades inclusivas por tema.</li>
+                  <li>Registrar feedback pedagógico após aplicação.</li>
+                  <li>Consultar histórico de atividades e preferências.</li>
+                </ul>
+              </div>
+              <div>
+                <h3>Sem acesso a</h3>
+                <ul class="danger-list">
+                  <li>Documentos pessoais, endereço e contatos familiares.</li>
+                  <li>Laudos anexados e observações administrativas.</li>
+                  <li>Alteração de cadastro completo do aluno.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="admin" class="view">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Coordenação</p>
+              <h2>Turmas, professoras e alunos</h2>
+            </div>
+            <p>A coordenação administra o cadastro completo. Alterações aqui refletem imediatamente para as professoras.</p>
+          </div>
+
+          <div class="admin-tabs" role="tablist">
+            <button class="admin-tab active" type="button" data-admin-tab="classes">Turmas</button>
+            <button class="admin-tab" type="button" data-admin-tab="teachers">Professoras</button>
+            <button class="admin-tab" type="button" data-admin-tab="studentsAdmin">Alunos</button>
+            <button class="admin-tab" type="button" data-admin-tab="history">Histórico</button>
+            <button class="admin-tab" type="button" data-admin-tab="ai">IA</button>
+          </div>
+
+          <section id="adminTab-classes" class="admin-subview active">
+            <div class="panel-title">
+              <h3>Turmas cadastradas</h3>
+              <button class="primary-action small-action" type="button" id="addClassButton">Nova turma</button>
+            </div>
+            <div id="classesTable" class="simple-table"></div>
+          </section>
+
+          <section id="adminTab-teachers" class="admin-subview">
+            <div class="panel-title">
+              <h3>Professoras cadastradas</h3>
+              <button class="primary-action small-action" type="button" id="addTeacherButton">Nova professora</button>
+            </div>
+            <div id="teachersTable" class="simple-table"></div>
+          </section>
+
+          <section id="adminTab-studentsAdmin" class="admin-subview">
+            <div class="panel-title">
+              <h3>Alunos cadastrados</h3>
+              <button class="primary-action small-action" type="button" id="addStudentButton">Novo aluno</button>
+            </div>
+            <div class="list-controls">
+              <input type="search" id="adminStudentsSearch" placeholder="Buscar aluno pelo nome..." />
+              <select id="adminStudentsClassFilter"><option value="">Todas as turmas</option></select>
+            </div>
+            <div id="adminGrid" class="grouped-list"></div>
+          </section>
+
+          <section id="adminTab-history" class="admin-subview">
+            <div class="panel-title">
+              <h3>Histórico de alterações</h3>
+            </div>
+            <p class="hint-text">Últimas 100 ações administrativas — quem fez, o quê e quando.</p>
+            <div id="historyTable" class="simple-table"></div>
+          </section>
+
+          <section id="adminTab-ai" class="admin-subview">
+            <div class="panel-title">
+              <h3>Inteligência artificial</h3>
+            </div>
+            <p class="hint-text">
+              Escolha qual IA o sistema usa para sugerir atividades e preencher a base de deficiências. As atividades
+              geradas nunca recebem dados pessoais do aluno (nome completo, data de nascimento, responsável,
+              telefone) — só o perfil pedagógico, os pontos fortes/cuidados e o tema do dia.
+            </p>
+            <p class="ai-status-line" id="aiSettingsStatusLine"></p>
+
+            <form id="aiSettingsForm" class="ai-settings-form">
+              <label>
+                Provedor de IA
+                <select id="aiProviderInput">
+                  <option value="">Nenhum (desativar / usar .env)</option>
+                  <option value="ollama">Ollama (roda local, gratuito)</option>
+                  <option value="openai">OpenAI (API paga, na nuvem)</option>
+                </select>
+              </label>
+
+              <div id="aiOllamaFields" class="ai-provider-fields" hidden>
+                <div class="form-grid-2">
+                  <label>
+                    Endereço do Ollama
+                    <input id="aiOllamaBaseUrlInput" type="text" placeholder="http://127.0.0.1:11434" />
+                  </label>
+                  <label>
+                    Modelo
+                    <input id="aiOllamaModelInput" type="text" placeholder="qwen2.5:7b" list="aiOllamaModelList" autocomplete="off" />
+                    <datalist id="aiOllamaModelList"></datalist>
+                  </label>
+                </div>
+                <div class="ai-model-list-actions">
+                  <button type="button" class="secondary-action small-action" id="aiRefreshModelsButton">Atualizar lista de modelos instalados</button>
+                  <span class="hint-text" id="aiModelListStatus"></span>
+                </div>
+                <div class="ai-model-choices" id="aiModelChoices" hidden></div>
+                <details class="ai-instructions">
+                  <summary>Como conectar o Ollama</summary>
+                  <ol>
+                    <li>Baixe e instale o Ollama nesta máquina em <strong>ollama.com/download</strong> (Windows, Mac ou Linux).</li>
+                    <li>Abra um terminal e rode <code>ollama pull qwen2.5:7b</code> para baixar um modelo (pode trocar por outro nome de modelo disponível em ollama.com/library).</li>
+                    <li>Deixe o Ollama aberto em segundo plano nesta máquina (ele fica ouvindo em <code>http://127.0.0.1:11434</code> por padrão).</li>
+                    <li>Preencha o endereço acima e clique em "Atualizar lista de modelos instalados" — o campo Modelo passa a sugerir os modelos já baixados nesta máquina, mas também aceita digitar qualquer outro nome.</li>
+                  </ol>
+                  <p class="hint-text">Gratuito e os dados não saem desta máquina — mas exige que o Ollama fique aberto para a IA funcionar.</p>
+                </details>
+              </div>
+
+              <div id="aiOpenaiFields" class="ai-provider-fields" hidden>
+                <div class="form-grid-2">
+                  <label>
+                    Chave da API (secreta)
+                    <input id="aiOpenaiKeyInput" type="password" placeholder="sk-..." autocomplete="off" />
+                  </label>
+                  <label>
+                    Modelo
+                    <input id="aiOpenaiModelInput" type="text" placeholder="gpt-4o-mini" />
+                  </label>
+                </div>
+                <label class="checkbox-inline">
+                  <input type="checkbox" id="aiOpenaiClearKeyInput" />
+                  Esquecer a chave salva (desativa a OpenAI até colar uma nova)
+                </label>
+                <p class="hint-text" id="aiOpenaiKeyStatus"></p>
+                <details class="ai-instructions">
+                  <summary>Como conectar a OpenAI</summary>
+                  <ol>
+                    <li>Crie uma conta em <strong>platform.openai.com</strong> (é separada da conta do ChatGPT comum e é paga por uso).</li>
+                    <li>Vá em <strong>API keys</strong>, clique em "Create new secret key" e copie a chave gerada (começa com <code>sk-</code>).</li>
+                    <li>Cole a chave no campo acima e clique em Salvar. A chave fica guardada só nesta instalação e nunca é mostrada de novo depois de salva.</li>
+                  </ol>
+                  <p class="hint-text">Pago por uso (cobrado pela OpenAI, fora do sistema) — mas não exige nada instalado nesta máquina.</p>
+                </details>
+              </div>
+
+              <div class="dialog-actions">
+                <button type="submit" class="primary-action" id="aiSettingsSubmit">Salvar configuração de IA</button>
+              </div>
+            </form>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="observationDialog">
+      <form method="dialog" id="observationForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Observação do aluno</p>
+            <h2 id="observationTitle">Registrar percepção</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Percepção da professora
+          <textarea id="studentObservation" rows="5" placeholder="Ex: aceita melhor atividades com começo, meio e fim visíveis..."></textarea>
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action">Salvar observação</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="needObservationDialog">
+      <form method="dialog" id="needObservationForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Percepção sobre deficiência</p>
+            <h2 id="needObservationTitle">Registrar percepção</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Observação da professora
+          <textarea id="needObservationText" rows="5" placeholder="Ex: na rotina da escola, alunos com este perfil respondem melhor quando..."></textarea>
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action">Salvar percepção</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="newNeedDialog">
+      <form method="dialog" id="newNeedForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Nova deficiência</p>
+            <h2>Adicionar à base</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Nome da deficiência ou necessidade
+          <input id="newNeedName" type="text" placeholder="Ex: Deficiência intelectual" required />
+        </label>
+
+        <label>
+          Observação inicial da professora
+          <textarea id="newNeedObservation" rows="4" placeholder="Opcional: percepção da equipe sobre esse perfil."></textarea>
+        </label>
+
+        <p class="hint-text">O registro entra como rascunho — a coordenação completa estratégias, recursos e barreiras depois.</p>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action">Criar bloco</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="classDialog">
+      <form method="dialog" id="classForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" id="classDialogEyebrow">Nova turma</p>
+            <h2 id="classDialogTitle">Cadastrar turma</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Nome da turma
+          <input id="classNameInput" type="text" placeholder="Ex: Jardim A" required />
+        </label>
+
+        <label>
+          Nível
+          <select id="classLevelInput">
+            <option value="Jardim">Jardim</option>
+            <option value="Pré I">Pré I</option>
+          </select>
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action" id="classDialogSubmit">Salvar turma</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="teacherDialog">
+      <form method="dialog" id="teacherForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" id="teacherDialogEyebrow">Nova professora</p>
+            <h2 id="teacherDialogTitle">Cadastrar professora</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Nome completo
+          <input id="teacherNameInput" type="text" required />
+        </label>
+
+        <label>
+          E-mail de acesso
+          <input id="teacherEmailInput" type="email" required />
+        </label>
+
+        <div id="teacherPasswordFieldWrap">
+          <label>
+            Senha inicial
+            <input id="teacherPasswordInput" type="text" placeholder="Mínimo 4 caracteres" />
+          </label>
+        </div>
+
+        <fieldset class="checkbox-fieldset">
+          <legend>Turmas atendidas</legend>
+          <div id="teacherClassesCheckboxes" class="checkbox-grid"></div>
+        </fieldset>
+
+        <p class="hint-text" id="teacherDialogHint"></p>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action" id="teacherDialogSubmit">Salvar professora</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="teacherPasswordDialog">
+      <form method="dialog" id="teacherPasswordForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Redefinir senha</p>
+            <h2 id="teacherPasswordTitle">Nova senha de acesso</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <label>
+          Nova senha
+          <input id="teacherNewPasswordInput" type="text" placeholder="Mínimo 4 caracteres" required />
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action">Salvar nova senha</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="studentDialog" class="dialog-wide">
+      <form method="dialog" id="studentForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" id="studentDialogEyebrow">Novo aluno</p>
+            <h2 id="studentDialogTitle">Cadastrar aluno</h2>
+          </div>
+          <button class="icon-button" type="submit" formnovalidate value="cancel" aria-label="Fechar">×</button>
+        </div>
+
+        <div class="form-grid-2">
+          <label>
+            Nome completo
+            <input id="studentFullNameInput" type="text" required />
+          </label>
+          <label>
+            Nome de exibição (visto pela professora)
+            <input id="studentShortNameInput" type="text" placeholder="Ex: João M." required />
+          </label>
+          <label>
+            Idade
+            <input id="studentAgeInput" type="number" min="0" max="6" required />
+          </label>
+          <label>
+            Turma
+            <select id="studentClassInput"></select>
+          </label>
+        </div>
+
+        <label>
+          Deficiência / necessidade
+          <select id="studentNeedInput"></select>
+        </label>
+
+        <div class="form-grid-2">
+          <label>
+            Data de nascimento
+            <input id="studentBirthDateInput" type="text" placeholder="dd/mm/aaaa" required />
+          </label>
+          <label>
+            Responsável
+            <input id="studentGuardianInput" type="text" required />
+          </label>
+          <label>
+            Telefone de contato
+            <input id="studentPhoneInput" type="text" required />
+          </label>
+        </div>
+
+        <label>
+          Perfil pedagógico (visível para a professora)
+          <textarea id="studentProfileInput" rows="3" required></textarea>
+        </label>
+
+        <fieldset class="checkbox-fieldset">
+          <legend>Pontos fortes (usados na recomendação de atividades)</legend>
+          <div id="studentStrengthsCheckboxes" class="checkbox-grid"></div>
+        </fieldset>
+
+        <fieldset class="checkbox-fieldset">
+          <legend>Cuidados (usados na recomendação de atividades)</legend>
+          <div id="studentCautionsCheckboxes" class="checkbox-grid"></div>
+        </fieldset>
+
+        <label>
+          Documentos / observações administrativas (opcional, somente coordenação)
+          <textarea id="studentDocumentsInput" rows="2"></textarea>
+        </label>
+
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action" id="studentDialogSubmit">Salvar aluno</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="confirmDialog">
+      <form method="dialog" id="confirmForm">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow" id="confirmEyebrow">Confirmar ação</p>
+            <h2 id="confirmTitle">Tem certeza?</h2>
+          </div>
+        </div>
+        <p id="confirmMessage"></p>
+        <div class="dialog-actions">
+          <button value="cancel" type="submit" formnovalidate class="secondary-action">Cancelar</button>
+          <button value="default" class="primary-action" id="confirmSubmit">Confirmar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
