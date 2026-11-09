@@ -1,25 +1,20 @@
-// Popula data/db.json na primeira execucao (ou quando chamado com --force).
-// Rodado automaticamente pelo server/index.js se o banco ainda nao existir,
-// e tambem pode ser chamado manualmente: `npm run seed` ou `npm run reset-db`.
-const fs = require("fs");
-const config = require("../config");
+// Popula o banco SQLite (data/apoio.db) na primeira execucao (ou quando
+// chamado com --force). Rodado automaticamente pelo server/index.js se o banco
+// estiver vazio, e tambem pode ser chamado manualmente: `npm run seed` ou
+// `npm run reset-db`.
 const store = require("../store");
 const bnccGoals = require("./bnccGoals");
 const needsBase = require("./needsBase");
 const demo = require("./demo");
 
 function run({ force = false } = {}) {
-  const alreadyExists = fs.existsSync(config.DB_PATH);
-  if (alreadyExists && !force) {
-    console.log("data/db.json já existe - nada foi alterado. Use --force para recriar do zero.");
+  store.load(); // abre (ou cria) o banco; importa data/db.json antigo, se houver
+  if (!store.isEmpty() && !force) {
+    console.log("O banco data/apoio.db já tem dados - nada foi alterado. Use --force para recriar do zero.");
     return;
   }
+  if (force) store.reset();
 
-  if (alreadyExists && force) {
-    fs.unlinkSync(config.DB_PATH);
-  }
-
-  store.load(); // cria o arquivo vazio
   store.replaceCollection("classes", demo.classes);
   store.replaceCollection("teachers", demo.teachers);
   store.replaceCollection("students", demo.students);
@@ -27,7 +22,7 @@ function run({ force = false } = {}) {
   store.replaceCollection("needs", needsBase);
   store.replaceCollection("users", demo.buildUsers());
 
-  console.log("Banco criado com sucesso em data/db.json");
+  console.log("Banco criado com sucesso em data/apoio.db");
   console.log("Contas de acesso iniciais:");
   console.log("  Professora  -> professora@escola.com   / 123456");
   console.log("  Coordenação -> coordenacao@escola.com  / 123456");

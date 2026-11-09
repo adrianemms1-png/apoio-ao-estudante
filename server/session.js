@@ -1,38 +1,45 @@
-// Sessoes de login simples, guardadas em memoria (Map). Isso significa que
-// reiniciar o servidor derruba os logins ativos (a pessoa so precisa entrar
-// de novo) - troca aceitavel para nao depender de um pacote externo de
-// sessao/armazenamento. Se no futuro isso incomodar, e facil persistir esse
-// Map em data/db.json do mesmo jeito que as outras colecoes.
+// Sessoes de login, persistidas na tabela "sessions" do SQLite (versao 1.1+).
+// Antes ficavam so em memoria (Map) e todo reinicio do servidor derrubava os
+// logins ativos. O cookie guarda apenas um identificador aleatorio de 192 bits;
+// nenhum dado do usuario vai para o navegador.
 const crypto = require("crypto");
+const store = require("./store");
 
 const SESSION_COOKIE = "apoio_estudante_sid";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 horas
 
-const sessions = new Map();
+// Renovar o prazo a cada requisicao geraria uma escrita no banco por clique;
+// so renovamos quando ja passou este intervalo desde a ultima renovacao.
+const TOUCH_INTERVAL_MS = 5 * 60 * 1000;
 
 function createSession(userId) {
   const id = crypto.randomBytes(24).toString("hex");
-  sessions.set(id, { userId, expiresAt: Date.now() + SESSION_TTL_MS });
+  store.sessions.purgeExpired(Date.now());
+  store.sessions.create(id, userId, Date.now() + SESSION_TTL_MS);
   return id;
 }
 
 function getSession(sessionId) {
   if (!sessionId) return null;
-  const session = sessions.get(sessionId);
+  const session = store.sessions.get(sessionId);
   if (!session) return null;
   if (session.expiresAt < Date.now()) {
-    sessions.delete(sessionId);
+    store.sessions.destroy(sessionId);
     return null;
   }
   // Sessao "deslizante": cada requisicao autenticada renova o prazo. Antes o
   // prazo era fixo desde o login - quem trabalhasse mais de 12h seguidas era
   // deslogado no meio do uso, mesmo estando ativo o tempo todo.
-  session.expiresAt = Date.now() + SESSION_TTL_MS;
+  const newExpiry = Date.now() + SESSION_TTL_MS;
+  if (newExpiry - session.expiresAt > TOUCH_INTERVAL_MS) {
+    store.sessions.touch(sessionId, newExpiry);
+    session.expiresAt = newExpiry;
+  }
   return session;
 }
 
 function destroySession(sessionId) {
-  sessions.delete(sessionId);
+  store.sessions.destroy(sessionId);
 }
 
 function parseCookies(req) {

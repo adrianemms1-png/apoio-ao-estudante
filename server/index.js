@@ -1,13 +1,14 @@
 const http = require("http");
-const fs = require("fs");
 const config = require("./config");
 const store = require("./store");
 const { Router, sendJson, readJsonBody, parseUrl } = require("./router");
 const { parseCookies, getSession, SESSION_COOKIE } = require("./session");
 const { serveStatic } = require("./staticServer");
 
-// Garante que o banco existe antes de subir o servidor (primeira execucao).
-if (!fs.existsSync(config.DB_PATH)) {
+// Abre o banco (criando-o, ou importando o data/db.json da versao 1.0, se for
+// o caso) e popula os dados de demonstracao na primeira execucao.
+store.load();
+if (store.isEmpty()) {
   require("./seedData/seed").run({ force: false });
 }
 

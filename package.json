@@ -1,6 +1,6 @@
 {
   "name": "apoio-estudante",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Plataforma local de apoio ao planejamento pedagogico inclusivo (BNCC + adaptacoes para NEE).",
   "private": true,
   "type": "commonjs",
@@ -8,10 +8,12 @@
   "scripts": {
     "start": "node server/index.js",
     "seed": "node server/seedData/seed.js",
-    "reset-db": "node server/seedData/seed.js --force"
+    "reset-db": "node server/seedData/seed.js --force",
+    "test": "node --test",
+    "bench": "node bench/persistencia-json-vs-sqlite.js && node bench/integridade-concorrencia.js"
   },
   "dependencies": {},
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   }
 }

@@ -32,8 +32,10 @@ function loadDotEnv() {
 
 loadDotEnv();
 
-const DATA_DIR = path.join(ROOT_DIR, "data");
-const DB_PATH = path.join(DATA_DIR, "db.json");
+// DATA_DIR pode ser trocado por variavel de ambiente (usado pelos testes automatizados).
+const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(ROOT_DIR, "data");
+const DB_PATH = path.join(DATA_DIR, "apoio.db"); // banco SQLite (versao 1.1+)
+const LEGACY_JSON_PATH = path.join(DATA_DIR, "db.json"); // formato da versao 1.0, importado automaticamente
 const SECRET_PATH = path.join(DATA_DIR, ".session-secret");
 
 function ensureDataDir() {
@@ -57,6 +59,7 @@ module.exports = {
   ROOT_DIR,
   DATA_DIR,
   DB_PATH,
+  LEGACY_JSON_PATH,
   PORT: Number(process.env.PORT) || 3000,
   HOST: process.env.HOST || "127.0.0.1",
   SESSION_SECRET: getOrCreateSessionSecret(),
