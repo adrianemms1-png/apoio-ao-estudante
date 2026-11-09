@@ -1,0 +1,29 @@
+flowchart TB
+  subgraph AP["Apresentação (navegador)"]
+    UI["public/index.html, styles.css, app.js<br/>HTML, CSS e JavaScript sem framework"]
+  end
+  subgraph APL["Aplicação (Node.js, sem dependências externas)"]
+    IDX["index.js + router.js<br/>servidor HTTP e roteador próprio"]
+    SEC["session.js · middleware/auth.js · util/hash.js<br/>sessão, papéis e scrypt"]
+    RT["routes/<br/>auth, classes, teachers, students, bncc,<br/>needs, activities, assignments, feedbacks, audit, ai"]
+    MOT["engine/activityEngine.js<br/>motor de regras"]
+    AIP["aiPrompt.js<br/>prompts e clientes de IA"]
+    ST["store.js<br/>repositório: cache + transações"]
+  end
+  subgraph PER["Persistência"]
+    DB[("data/apoio.db<br/>SQLite (node:sqlite), modo WAL")]
+  end
+  subgraph IA["Provedores de IA (opcionais)"]
+    OL["Ollama<br/>/api/chat"]
+    OA["OpenAI<br/>API"]
+  end
+  UI <-->|"HTTP + JSON"| IDX
+  IDX --> SEC
+  IDX --> RT
+  RT --> MOT
+  RT --> AIP
+  RT --> ST
+  SEC --> ST
+  ST --> DB
+  AIP -.->|"contexto pedagógico,<br/>sem dados pessoais"| OL
+  AIP -.-> OA

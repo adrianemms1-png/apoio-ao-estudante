@@ -1,0 +1,25 @@
+graph UC {
+  rankdir=LR; fontname="Arial"; node[fontname="Arial",fontsize=12]; edge[fontname="Arial",fontsize=10,color="#444444"];
+  prof [shape=none,label="👤\nProfessora",fontsize=14];
+  coord [shape=none,label="👤\nCoordenação",fontsize=14];
+  ia [shape=box,style="rounded,dashed",label="«sistema externo»\nProvedor de IA\n(Ollama / OpenAI)"];
+  subgraph cluster_s { label="Apoio ao Estudante"; style=rounded; color="#555555"; fontsize=14;
+    node[shape=ellipse,style=filled,fillcolor="#f2f2f2",color="#666666"];
+    uc1[label="UC01 Autenticar-se"];
+    uc2[label="UC02 Gerar atividades\n(Atendimento rápido)"];
+    uc3[label="UC03 Gerar por regras\n(fallback)"];
+    uc4[label="UC04 Selecionar atividade\ne registrar resultado"];
+    uc5[label="UC05 Consultar alunos e\nregistrar observação"];
+    uc6[label="UC06 Consultar base de\ndeficiências e registrar percepção"];
+    uc7[label="UC07 Manter turmas\ne professoras"];
+    uc8[label="UC08 Manter alunos e\ndados pessoais"];
+    uc9[label="UC09 Manter base de\ndeficiências / consultar IA"];
+    uc10[label="UC10 Consultar histórico\n(auditoria)"];
+    uc11[label="UC11 Configurar\nprovedor de IA"];
+  }
+  prof -- uc1; prof -- uc2; prof -- uc4; prof -- uc5; prof -- uc6;
+  coord -- prof [style=bold,dir=forward,arrowhead=onormal,label="herda"];
+  coord -- uc7; coord -- uc8; coord -- uc9; coord -- uc10; coord -- uc11;
+  uc2 -- uc3 [style=dashed,label="«extend»\nIA indisponível"];
+  uc2 -- ia [style=dashed]; uc9 -- ia [style=dashed];
+}

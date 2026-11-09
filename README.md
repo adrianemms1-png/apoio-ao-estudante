@@ -5,9 +5,16 @@ adaptadas à BNCC para alunos com necessidades educacionais especiais (NEE),
 com login individual, separação real de permissões entre professora e
 coordenação, e cadastro completo de turmas, professoras e alunos.
 
-Esta é a evolução do protótipo estático original (`apoio-estudante-web/`,
-mantido ao lado desta pasta como referência) para uma aplicação de verdade,
-com back-end, banco de dados e controle de acesso.
+Esta é a evolução do protótipo estático original para uma aplicação de
+verdade, com back-end, banco de dados SQLite e controle de acesso. O projeto
+é o artefato do Trabalho de Conclusão de Curso de Adriane Dias de Assunção
+(Sistemas de Informação, UDESC/CESMO, 2026).
+
+> **Versão 1.1:** a persistência passou de um arquivo `data/db.json` para
+> **SQLite** (módulo nativo `node:sqlite`), as sessões passaram a sobreviver
+> a reinícios e foram incluídos testes automatizados (`npm test`) e scripts
+> de medição de desempenho (`bench/`). Veja [docs/](docs/) para diagramas,
+> telas e resultados.
 
 ## Como instalar e rodar
 
@@ -33,7 +40,8 @@ Os passos 1 e 2 abaixo continuam valendo para a primeira instalação manual.
    node --version
    ```
 
-   Se aparecer um número de versão (ex.: `v24.21.0`), está tudo certo.
+   Se aparecer um número de versão **22.13 ou maior** (ex.: `v24.21.0`),
+   está tudo certo. Versões mais antigas não têm o banco SQLite embutido.
    **Não é necessário rodar `npm install`** — veja "Por que sem
    dependências?" abaixo.
 
@@ -100,7 +108,7 @@ node server/index.js
 ```
 
 Na primeira execução o banco de dados local é criado automaticamente
-(`data/db.json`) com dados de demonstração, e o terminal mostra as contas de
+(`data/apoio.db`, SQLite) com dados de demonstração, e o terminal mostra as contas de
 acesso iniciais:
 
 - **Professora** — `professora@escola.com` / `123456`
@@ -120,7 +128,13 @@ Comandos úteis:
 npm start        # mesma coisa que "node server/index.js"
 npm run seed     # cria o banco se ele ainda não existir
 npm run reset-db # apaga tudo e recria os dados de demonstração
+npm test         # testes automatizados (casos de teste CT01 a CT10)
 ```
+
+**Atualizando da versão 1.0?** Não precisa fazer nada: na primeira execução
+da versão 1.1, se existir um `data/db.json` antigo, os dados são importados
+automaticamente para `data/apoio.db` e o arquivo antigo é mantido como
+`data/db.json.migrado`.
 
 ## O que mudou em relação ao protótipo original
 
@@ -136,8 +150,8 @@ npm run reset-db # apaga tudo e recria os dados de demonstração
   professoras (com login próprio) e alunos pela própria interface — nada
   mais fica preso em código-fonte.
 - **Banco de dados persistente**: os dados sobrevivem a reinícios do
-  servidor (ficam em `data/db.json`), diferente do protótipo original que
-  guardava tudo em `localStorage` do navegador.
+  servidor (ficam em `data/apoio.db`, SQLite), diferente do protótipo
+  original que guardava tudo em `localStorage` do navegador.
 - **Base da BNCC completa**: todos os objetivos de aprendizagem do Pré I e
   do Jardim (extraídos do PDF fornecido), não só os 6 exemplos do protótipo.
 - **Visual e responsividade**: mesma identidade visual do protótipo, com
@@ -204,7 +218,7 @@ frequência.
 2. Vá em **API keys**, clique em "Create new secret key" e copie a chave
    gerada (começa com `sk-`).
 3. Na tela **Coordenação → IA**, escolha "OpenAI", cole a chave e clique em
-   Salvar. A chave fica guardada só nesta instalação (em `data/db.json`,
+   Salvar. A chave fica guardada só nesta instalação (em `data/apoio.db`,
    nunca é enviada para mais nenhum lugar além de `api.openai.com`) e não é
    exibida de novo por nenhuma tela depois de salva.
 
@@ -222,34 +236,79 @@ nada tiver sido salvo ainda pela tela.
 
 Toda a integração está isolada em `server/aiPrompt.js`. Nenhuma biblioteca
 adicional é necessária: as chamadas usam o `fetch` global que já vem com o
-Node 18+.
+Node.js.
 
 ## Por que sem dependências? (nota técnica)
 
-O combinado inicial era Node.js + Express + SQLite. Esta aplicação foi
-construída num ambiente de desenvolvimento sem acesso à internet para baixar
-pacotes do npm — nem mesmo o driver de SQLite pôde ser instalado ali. Para
-não deixar o produto refém de uma etapa de `npm install` (e de problemas de
-rede, versão ou compilação nativa que ela poderia trazer para o seu
-computador), o back-end foi reescrito usando **só a biblioteca padrão do
-Node** (`http`, `fs`, `crypto`) — sem Express, sem driver de banco.
+O combinado inicial era Node.js + Express + SQLite. A primeira versão foi
+construída num ambiente sem acesso ao npm — nem o driver de SQLite pôde ser
+instalado —, então o back-end usa **só a biblioteca padrão do Node**:
 
-Na prática, isso significa:
-
-- **Servidor HTTP**: um roteador bem pequeno em `server/router.js` no lugar
-  do Express.
-- **Banco de dados**: um "repositório" simples sobre um arquivo JSON
-  (`server/store.js` + `data/db.json`) no lugar de SQLite. Todas as escritas
-  são síncronas, o que evita condições de corrida (o Node é de thread única).
+- **Servidor HTTP**: um roteador pequeno em `server/router.js` no lugar do
+  Express.
 - **Senhas**: hash com `crypto.scrypt` no lugar de bcrypt.
+- **Banco de dados**: na versão 1.0, um arquivo JSON (`data/db.json`)
+  regravado inteiro a cada alteração. **Na versão 1.1, SQLite**, usando o
+  módulo `node:sqlite` que já vem dentro do Node.js 22.13+ — ou seja, banco
+  de verdade continuando sem `npm install`.
 
-Isso é perfeitamente adequado para uma escola usando o sistema localmente.
-Se um dia isso crescer (várias escolas, muitos acessos simultâneos, um
-servidor compartilhado), o caminho natural é trocar `server/store.js` por um
-driver de banco de verdade (`better-sqlite3` ou Postgres via `pg`) mantendo a
-mesma interface (`getAll`/`getById`/`insert`/`update`/`remove`) — o resto do
-código não precisa mudar. No seu computador, com internet normal, isso é só
-rodar `npm install better-sqlite3` e ajustar `server/store.js`.
+### Por que o JSON foi substituído
+
+Os testes da pasta `bench/` mostraram dois problemas do arquivo JSON:
+
+1. **O custo de cada gravação cresce com o tamanho da base inteira.** Com o
+   volume de 20 escolas, registrar um feedback pela API chegou a p50 de
+   4,4 s com 50 usuárias simultâneas (vazão de 11 req/s); com SQLite, p50 de
+   8,5 ms (5.525 req/s).
+2. **Escrita concorrente perde dados.** Com 4 processos gravando ao mesmo
+   tempo, o JSON perdeu de 30% a 87% dos registros; o SQLite, nenhum.
+
+Detalhes e números completos em [docs/resultados.md](docs/resultados.md).
+
+### Como os dados ficam no SQLite
+
+`server/store.js` mantém a mesma interface de antes
+(`getAll`/`getById`/`insert`/`update`/`remove`), então nenhuma rota precisou
+mudar. Cada coleção é uma tabela com chave, o registro em JSON e **colunas
+geradas e indexadas** para as chaves estrangeiras mais consultadas (ex.:
+`c_feedbacks.student_id`). Toda escrita é uma transação (modo WAL); as
+leituras saem de um cache em memória carregado na inicialização. As sessões
+de login ficam na tabela `sessions`. O esquema completo está em
+[docs/schema.sql](docs/schema.sql).
+
+## Medições e testes
+
+```bash
+npm test                                              # 10 casos de teste automatizados
+node bench/persistencia-json-vs-sqlite.js             # JSON x SQLite, 3 volumes
+node bench/integridade-concorrencia.js                # perda de dados sob concorrência
+node bench/carga-versoes.js ../v1.0 M                 # carga na API: v1.0 x v1.1
+node bench/latencia-ia.js llama3.2:1b llama3.2:3b qwen2.5:7b   # latência real da IA (Ollama aberto)
+```
+
+Para obter a pasta `../v1.0`: `git worktree add ../v1.0 v1.0`.
+
+O `bench/latencia-ia.js` chama a mesma função que o Atendimento Rápido usa
+(`generateActivitiesWithAI`) e mede, por modelo, a partida a frio, p50/p95,
+tokens por segundo e a taxa de respostas válidas. **Rode nas máquinas da
+escola** para escolher o perfil de implantação (abaixo).
+
+## IA local e o hardware das escolas
+
+Modelos de 7B (como `qwen2.5:7b`, 4,7 GB) pedem de 8 a 16 GB de RAM livres e
+ficam lentos sem placa de vídeo — e muitos computadores de escola têm 4 GB.
+Por isso a IA é **opcional** e o `iniciar.bat` verifica a memória da máquina:
+abaixo de 12 GB ele não baixa o modelo grande e explica as alternativas.
+
+| Perfil | O que roda onde | Para quem |
+|---|---|---|
+| A – Só regras | Node.js + SQLite na estação, IA desligada | Qualquer computador |
+| B – IA local leve | + Ollama com modelo de 1B a 3B (`llama3.2:3b`) | Máquinas com 8 GB |
+| C – Servidor compartilhado | Um servidor da secretaria roda Node.js + Ollama 7B; as escolas só usam o navegador | Redes municipais |
+| D – Nuvem paga | Geração pela API da OpenAI (sem dados pessoais) | Quem aceita custo por uso |
+
+No perfil C, basta apontar **Coordenação → IA → URL do Ollama** para o
+servidor da rede (ou rodar o sistema inteiro nele, com `HOST=0.0.0.0`).
 
 ## Caminho para publicar na web
 
@@ -257,11 +316,9 @@ A aplicação já está desenhada para isso:
 
 1. O front-end (`public/`) é servido pelo próprio Node — não depende de
    nenhum serviço externo.
-2. Troque `server/store.js` por um banco real (SQLite com `better-sqlite3`
-   para começar, ou Postgres para múltiplas escolas ao mesmo tempo).
-3. Troque as sessões em memória (`server/session.js`) por um armazenamento
-   persistente (arquivo, Redis, ou tabela no banco) para sessões
-   sobreviverem a reinícios do servidor.
+2. ✅ Banco real: SQLite desde a versão 1.1 (para muitas escolas gravando
+   ao mesmo tempo, avaliar PostgreSQL mantendo a interface de `store.js`).
+3. ✅ Sessões persistentes: tabela `sessions` desde a versão 1.1.
 4. Defina `SESSION_SECRET` fixo (em vez do gerado automaticamente) e sirva a
    aplicação atrás de HTTPS.
 5. Publique num serviço de hospedagem Node (Render, Railway, Fly.io, uma VPS
@@ -275,8 +332,8 @@ apoio-estudante-app/
   server/
     index.js          servidor HTTP e ponto de entrada
     router.js          roteador HTTP minimalista (sem Express)
-    store.js            "banco de dados" em JSON
-    session.js          sessões de login
+    store.js            repositório de dados (SQLite via node:sqlite)
+    session.js          sessões de login (persistidas no SQLite)
     config.js            variáveis de ambiente
     aiPrompt.js           integração com IA (Ollama/OpenAI) - ver "Sobre a geração por IA"
     engine/
@@ -288,7 +345,10 @@ apoio-estudante-app/
   public/
     index.html, styles.css, app.js    front-end (fala com a API via fetch)
   data/
-    db.json                criado automaticamente na primeira execução
+    apoio.db               banco SQLite, criado na primeira execução (fora do Git)
+  test/                    testes automatizados (node --test)
+  bench/                   scripts de medição de desempenho e integridade
+  docs/                    diagramas UML, telas, esquema SQL e resultados
   .env.example
   package.json
   iniciar.bat              atalho: dois cliques para rodar o servidor

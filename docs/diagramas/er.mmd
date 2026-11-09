@@ -1,0 +1,54 @@
+erDiagram
+  c_users ||..o{ sessions : "user_id"
+  c_users |o..o| c_teachers : "teacherId"
+  c_teachers }o..o{ c_classes : "classIds[]"
+  c_classes ||..o{ c_students : "class_id"
+  c_needs |o..o{ c_students : "need_id"
+  c_students ||..o{ c_assignments : "student_id"
+  c_students ||..o{ c_feedbacks : "student_id"
+  c_assignments |o..o| c_feedbacks : "assignment_id"
+  c_bncc_goals ||..o{ c_assignments : "goalCode"
+  c_users ||..o{ c_audit_log : "actorId"
+  c_users { integer rid PK
+    text id UK
+    text data "JSON"
+    text email "gerada, indexada"
+    text teacher_id "gerada, indexada" }
+  sessions { text id PK
+    text user_id
+    integer expires_at "indexada" }
+  c_teachers { integer rid PK
+    text id UK
+    text data "JSON" }
+  c_classes { integer rid PK
+    text id UK
+    text data "JSON" }
+  c_students { integer rid PK
+    text id UK
+    text data "JSON"
+    text class_id "gerada, indexada"
+    text need_id "gerada, indexada" }
+  c_needs { integer rid PK
+    text id UK
+    text data "JSON" }
+  c_bncc_goals { integer rid PK
+    text data "JSON"
+    text code "gerada, indexada"
+    text level "gerada, indexada" }
+  c_assignments { integer rid PK
+    text id UK
+    text data "JSON"
+    text student_id "gerada, indexada"
+    text class_id "gerada, indexada" }
+  c_feedbacks { integer rid PK
+    text id UK
+    text data "JSON"
+    text student_id "gerada, indexada"
+    text assignment_id "gerada, indexada" }
+  c_audit_log { integer rid PK
+    text id UK
+    text data "JSON"
+    text at "gerada, indexada" }
+  kv { text map PK
+    text key PK
+    text value "JSON" }

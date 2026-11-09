@@ -1,0 +1,15 @@
+flowchart LR
+  L["Login"] -->|professora| AR["Atendimento rápido"]
+  L -->|coordenação| AR
+  AR --> RES["3 atividades<br/>adaptadas"]
+  RES -->|"Selecionar"| AND["Atividade em andamento"]
+  AND -->|"Funcionou bem / parcialmente /<br/>Não funcionou"| FB[("Feedback")]
+  AR --- AL["Alunos<br/>(perfil pedagógico)"]
+  AR --- BD["Base de deficiências<br/>(percepção da professora)"]
+  AR --- PP["Perfil da professora"]
+  AR ---|"só coordenação"| CO["Coordenação"]
+  CO --> T1["Turmas"]
+  CO --> T2["Professoras"]
+  CO --> T3["Alunos<br/>(+ dados pessoais)"]
+  CO --> T4["Histórico<br/>(auditoria)"]
+  CO --> T5["IA<br/>(provedor e modelo)"]

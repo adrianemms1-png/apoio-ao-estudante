@@ -1,0 +1,122 @@
+classDiagram
+  direction TB
+  class Usuario {
+    +id: string
+    +email: string
+    -passwordHash: string (scrypt)
+    +role: teacher | admin
+    +name: string
+    +teacherId: string
+  }
+  class Sessao {
+    -id: string (192 bits)
+    +userId: string
+    +expiresAt: number
+  }
+  class Professora {
+    +id: string
+    +name: string
+    +classIds: string[]
+  }
+  class Turma {
+    +id: string
+    +name: string
+    +level: Pré I | Jardim
+  }
+  class Aluno {
+    +id: string
+    +shortName: string
+    +age: number
+    +disability: string
+    +profile: string
+    +strengths: string[]
+    +cautions: string[]
+  }
+  class DadosPessoais {
+    <<visível só à coordenação>>
+    +fullName: string
+    +birthDate: string
+    +guardian: string
+    +phone: string
+    +documentsNote: string
+  }
+  class Necessidade {
+    +id: string
+    +name: string
+    +summary: string
+    +barriers: string[]
+    +strategies: string[]
+    +resources: string[]
+    +activityMatches: string[]
+  }
+  class ObjetivoBNCC {
+    +code: string
+    +level: string
+    +field: string
+    +text: string
+  }
+  class ModeloAtividade {
+    +type: string
+    +title: string
+    +method: string
+    +goodFor: string[]
+    +avoidWhen: string[]
+  }
+  class MotorAtividades {
+    <<módulo engine/activityEngine.js>>
+    +getNeedForDisability(aluno, necessidades)
+    +chooseTemplates(aluno, feedbacks, necessidade)
+    +buildActivities(...) Atividade[3]
+    +normalizeAiActivities(...) Atividade[3]
+  }
+  class ServicoIA {
+    <<módulo aiPrompt.js>>
+    +isAiConfigured() bool
+    +generateActivitiesWithAI(contexto) Atividade[3]
+    +generateNeedInsightsWithAI(...)
+    -callOllama(sistema, usuario)
+    -callOpenAI(sistema, usuario)
+  }
+  class Atribuicao {
+    +id: string
+    +activity: Atividade
+    +status: selecionada | resolvida
+    +notes: string
+    +createdAt: Date
+  }
+  class Feedback {
+    +id: string
+    +activityTitle: string
+    +result: Funcionou bem | parcialmente | Não funcionou
+    +date: string
+  }
+  class RegistroAuditoria {
+    +at: Date
+    +actorName: string
+    +action: string
+    +entity: string
+  }
+  class Store {
+    <<módulo store.js>>
+    +getAll(colecao)
+    +getById(colecao, id)
+    +insert(colecao, registro)
+    +update(colecao, id, alteracoes)
+    +remove(colecao, id)
+    +setMapValue(mapa, chave, valor)
+  }
+  Usuario "1" -- "0..*" Sessao
+  Usuario "0..1" -- "0..1" Professora : teacherId
+  Professora "0..*" -- "0..*" Turma : leciona
+  Turma "1" o-- "0..*" Aluno
+  Aluno *-- "1" DadosPessoais
+  Aluno "0..*" --> "0..1" Necessidade : needId
+  MotorAtividades ..> Necessidade
+  MotorAtividades ..> ModeloAtividade : pontua
+  MotorAtividades ..> ObjetivoBNCC
+  MotorAtividades ..> Feedback : exclui o que falhou
+  ServicoIA ..> MotorAtividades : em falha, regras assumem
+  Aluno "1" -- "0..*" Atribuicao
+  Atribuicao "1" -- "0..1" Feedback : ao resolver
+  Usuario "1" -- "0..*" RegistroAuditoria : autor
+  Store ..> Usuario

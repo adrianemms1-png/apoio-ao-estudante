@@ -1,0 +1,33 @@
+sequenceDiagram
+  autonumber
+  actor P as Professora
+  participant UI as Interface (app.js)
+  participant S as Servidor (index.js + router)
+  participant ST as store.js (cache + SQLite)
+  participant M as activityEngine.js
+  participant IA as aiPrompt.js → Ollama/OpenAI
+  P->>UI: escolhe turma, aluno, tema e objetivo BNCC
+  UI->>S: GET /api/activities?studentId&goalCode&theme
+  S->>ST: sessions.get(cookie) e usuário
+  S->>S: requireAuth + teacherOwnsStudent
+  S->>ST: aluno, turma, objetivo, necessidade, feedbacks
+  alt IA configurada
+    S->>IA: generateActivitiesWithAI(contexto sem dados pessoais)
+    alt resposta válida
+      IA-->>S: 3 atividades (JSON)
+    else erro, timeout ou formato inválido
+      IA->>IA: novas tentativas, uma atividade por vez
+      IA-->>S: exceção
+      S->>M: buildActivities() (fallback)
+    end
+  else IA desligada
+    S->>M: buildActivities()
+  end
+  S-->>UI: 200 {activities, source: ia | regras | regras-fallback}
+  UI-->>P: três cartões de atividade
+  P->>UI: "Selecionar esta atividade"
+  UI->>S: POST /api/assignments
+  S->>ST: INSERT c_assignments (transação)
+  P->>UI: "Não funcionou" + observação
+  UI->>S: PUT /api/assignments/:id/resolve
+  S->>ST: UPDATE c_assignments + INSERT c_feedbacks

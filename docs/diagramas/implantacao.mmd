@@ -1,0 +1,17 @@
+flowchart TB
+  subgraph A["Perfil A: só regras (qualquer computador)"]
+    A1["Estação da escola: navegador + Node.js + SQLite<br/>4 GB de RAM ou mais"]
+  end
+  subgraph B["Perfil B: IA local leve"]
+    B1["Estação da escola: Node.js + SQLite + Ollama<br/>modelo de 1B a 3B parâmetros, 8 GB de RAM"]
+  end
+  subgraph C["Perfil C: servidor de inferência compartilhado"]
+    direction LR
+    C0["Estações das escolas<br/>apenas navegador"] -->|"rede da secretaria<br/>(HTTPS)"| C1["Servidor do município<br/>Node.js + SQLite"]
+    C1 -->|"API HTTP local"| C2["Ollama, modelo de 7B<br/>16 GB de RAM ou GPU"]
+  end
+  subgraph D["Perfil D: nuvem paga"]
+    direction LR
+    D1["Estação ou servidor<br/>Node.js + SQLite"] -->|"HTTPS, sem<br/>dados pessoais"| D2["API da OpenAI"]
+  end
+  A ~~~ B ~~~ C ~~~ D
