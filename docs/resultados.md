@@ -58,10 +58,16 @@ Login como professora; `GET /api/activities` = Atendimento rápido pelo motor de
 
 ## Latência da IA — `bench/latencia-ia.js`
 
-Depende do hardware de cada escola: **rode o script nas máquinas reais** com o Ollama aberto e registre aqui.
+Depende do hardware de cada máquina. Ensaio de 10/11/2026 no computador de referência E2
+(notebook Dell Latitude 3420, Intel Core i5-1135G7, 4 núcleos/8 threads, 15,7 GB, Windows 11 Pro,
+Node.js 24.21, Ollama 0.34.0, sem GPU dedicada). Uma chamada a frio e cinco a quente por modelo;
+com cinco repetições, o p95 é o maior tempo observado. Meta do RNF08: p95 ≤ 30 s.
 
 | Modelo | Máquina | Partida a frio (s) | p50 (s) | p95 (s) | Tokens/s | Respostas válidas |
 |---|---|---|---|---|---|---|
-| llama3.2:1b | — | — | — | — | — | — |
-| llama3.2:3b | — | — | — | — | — | — |
-| qwen2.5:7b | — | — | — | — | — | — |
+| llama3.2:1b | E2 | 77,6 | 59,7 | 67,3 | 13,5 | 100% |
+| llama3.2:3b | E2 | 133,3 | 92,4 | 99,5 | 8,2 | 100% |
+| qwen2.5:7b | E2 | 260,9 | 156,6 | 160,4 | 4,3 | 100% |
+
+Nenhum modelo atendeu à meta em CPU nessa máquina. Falta repetir no computador da escola (E1)
+e em um servidor com GPU (perfil C): `node bench/latencia-ia.js llama3.2:1b llama3.2:3b qwen2.5:7b`.
