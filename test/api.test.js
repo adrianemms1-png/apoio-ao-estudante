@@ -18,12 +18,13 @@ const ROOT = path.join(__dirname, "..");
 const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "apoio-test-"));
 const PORT = 3900 + Math.floor(Math.random() * 90);
 const BASE = `http://127.0.0.1:${PORT}`;
+const SENHA = require("node:crypto").randomBytes(6).toString("hex"); // senha inicial so deste teste
 let server;
 
 // ---------- utilitarios ----------
 function startServer() {
   return new Promise((resolve, reject) => {
-    const env = { ...process.env, DATA_DIR, PORT: String(PORT), NODE_NO_WARNINGS: "1", AI_PROVIDER: "" };
+    const env = { ...process.env, DATA_DIR, SENHA_INICIAL: SENHA, PORT: String(PORT), NODE_NO_WARNINGS: "1", AI_PROVIDER: "" };
     server = spawn(process.execPath, [path.join(ROOT, "server/index.js")], { env, stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     server.stdout.on("data", (d) => {
@@ -54,7 +55,7 @@ async function api(method, url, { body, cookie } = {}) {
   return { status: res.status, json, cookie: setCookie ? setCookie.split(";")[0] : null };
 }
 async function login(email) {
-  const r = await api("POST", "/api/auth/login", { body: { email, password: "123456" } });
+  const r = await api("POST", "/api/auth/login", { body: { email, password: SENHA } });
   assert.equal(r.status, 200);
   return r.cookie;
 }
@@ -67,7 +68,7 @@ after(async () => {
 
 // ---------- casos de teste ----------
 test("CT01 - login com senha correta e incorreta", async () => {
-  const ok = await api("POST", "/api/auth/login", { body: { email: "professora@escola.com", password: "123456" } });
+  const ok = await api("POST", "/api/auth/login", { body: { email: "professora@escola.com", password: SENHA } });
   assert.equal(ok.status, 200);
   assert.ok(ok.cookie.startsWith("apoio_estudante_sid="));
   assert.equal(ok.json.user.passwordHash, undefined, "o hash da senha nao pode sair do servidor");

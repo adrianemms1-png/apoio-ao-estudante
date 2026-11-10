@@ -65,12 +65,15 @@ const students = [
   }
 ];
 
-function buildUsers() {
+// A senha inicial nao fica no codigo: e gerada na primeira execucao
+// (server/seedData/seed.js) ou definida pela variavel SENHA_INICIAL.
+function buildUsers(senhaInicial) {
+  if (!senhaInicial) throw new Error("buildUsers: informe a senha inicial");
   return [
     {
       id: "user-professora",
       email: "professora@escola.com",
-      passwordHash: hashPassword("123456"),
+      passwordHash: hashPassword(senhaInicial),
       role: "teacher",
       name: "Ana Paula",
       teacherId: "ana"
@@ -78,7 +81,7 @@ function buildUsers() {
     {
       id: "user-coordenacao",
       email: "coordenacao@escola.com",
-      passwordHash: hashPassword("123456"),
+      passwordHash: hashPassword(senhaInicial),
       role: "admin",
       name: "Coordenação Pedagógica",
       teacherId: null

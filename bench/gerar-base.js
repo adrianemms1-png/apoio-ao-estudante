@@ -13,7 +13,8 @@ const CENARIOS = {
   G: { escolas: 100, alunosPorEscola: 200, feedbacksPorAluno: 10 },
 };
 
-function gerarBase(nome = 'M') {
+// senha: senha das contas de teste (os scripts de carga geram uma aleatoria).
+function gerarBase(nome = 'M', senha = require('node:crypto').randomBytes(6).toString('hex')) {
   const c = CENARIOS[nome];
   const classes = [...demo.classes], students = [...demo.students], feedbacks = [], auditLog = [], assignments = [];
   const needIds = needsBase.map(n => n.id);
@@ -35,7 +36,7 @@ function gerarBase(nome = 'M') {
       }
     }
   }
-  return { users: demo.buildUsers(), teachers: demo.teachers, classes, students, bnccGoals, needs: needsBase,
+  return { users: demo.buildUsers(senha), teachers: demo.teachers, classes, students, bnccGoals, needs: needsBase,
     needObservations: {}, studentObservations: {}, feedbacks, assignments, auditLog, aiSettings: {} };
 }
 

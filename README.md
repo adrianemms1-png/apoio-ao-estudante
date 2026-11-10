@@ -109,10 +109,14 @@ node server/index.js
 
 Na primeira execução o banco de dados local é criado automaticamente
 (`data/apoio.db`, SQLite) com dados de demonstração, e o terminal mostra as contas de
-acesso iniciais:
+acesso iniciais, com uma senha aleatória gerada nesse momento (ela também fica
+guardada em `data/senha-inicial.txt`, que não vai para o Git):
 
-- **Professora** — `professora@escola.com` / `123456`
-- **Coordenação** — `coordenacao@escola.com` / `123456`
+- **Professora** — `professora@escola.com`
+- **Coordenação** — `coordenacao@escola.com`
+
+Para escolher a senha inicial em vez de gerá-la, defina `SENHA_INICIAL` no
+arquivo `.env` antes da primeira execução.
 
 Depois abra `http://127.0.0.1:3000` no navegador (o `iniciar.bat` já faz
 isso sozinho). Troque essas senhas assim que possível pela tela de

@@ -19,6 +19,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { gerarBase } = require('./gerar-base');
 
+const SENHA = require('node:crypto').randomBytes(6).toString('hex'); // senha das contas da base gerada
 const V10 = process.argv[2];
 const CENARIO = (process.argv[3] || 'M').toUpperCase();
 const V11 = path.join(__dirname, '..');
@@ -39,7 +40,7 @@ function prepararPasta(versao, origem) {
   fs.cpSync(path.join(origem, 'server'), path.join(dir, 'server'), { recursive: true });
   fs.cpSync(path.join(origem, 'public'), path.join(dir, 'public'), { recursive: true });
   fs.mkdirSync(path.join(dir, 'data'));
-  fs.writeFileSync(path.join(dir, 'data', 'db.json'), JSON.stringify(gerarBase(CENARIO), null, 2));
+  fs.writeFileSync(path.join(dir, 'data', 'db.json'), JSON.stringify(gerarBase(CENARIO, SENHA), null, 2));
   return dir;
 }
 
@@ -86,7 +87,7 @@ async function carga(base, cookie, r) {
     const dir = prepararPasta(versao.split(' ')[0], origem);
     const srv = await subir(dir, ++porta);
     const base = `http://127.0.0.1:${porta}`;
-    const login = await fetch(base + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'professora@escola.com', password: '123456' }) });
+    const login = await fetch(base + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'professora@escola.com', password: SENHA }) });
     const cookie = login.headers.get('set-cookie').split(';')[0];
     for (const r of RODADAS) {
       const res = { versao, ...(await carga(base, cookie, r)) };

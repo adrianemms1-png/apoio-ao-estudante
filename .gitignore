@@ -1,6 +1,7 @@
 node_modules/
 data/db.json
 data/.session-secret
+data/senha-inicial.txt
 .env
 *.log
 data/apoio.db
