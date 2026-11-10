@@ -5,7 +5,7 @@
 // Uso:
 //   node bench/carga-versoes.js <pasta-da-versao-1.0> [cenario]
 //   cenario: P (1 escola), M (20 escolas) ou G (100 escolas). Padrao: M.
-// A pasta da versao 1.0 e uma copia do projeto anterior a migracao (tag v1.0 do
+// A pasta da versao 1.0 e uma copia do projeto anterior a migracao (ramo v1.0 do
 // repositorio: git worktree add ../v1.0 v1.0). A versao 1.1 e a pasta atual.
 //
 // Para cada versao: gera a base, sobe o servidor, faz login como professora e
